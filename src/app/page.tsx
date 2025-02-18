@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { TerminalDemo } from "@/components/terminal";
+import { Button } from "../components/ui/button";
+import { TerminalDemo } from "../components/terminal";
 
 export default function Home() {
   return (

@@ -4,9 +4,9 @@ import type React from "react";
 
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "@/store/store";
-import { logout } from "@/store/authSlice";
-import { Button } from "@/components/ui/button";
+import type { RootState } from "../store/store";
+import { logout } from "../store/authSlice";
+import { Button } from "../components/ui/button";
 
 const Header: React.FC = () => {
   const auth = useSelector((state: RootState) => state.auth);
