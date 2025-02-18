@@ -9,17 +9,22 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export default function ProductsPage() {
+  // Get products from Redux store
   const products = useSelector((state: RootState) => state.products.items);
   const dispatch = useDispatch();
+
+  // Refs for canvas elements and weight state
   const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const [weights, setWeights] = useState<number[]>(products.map(() => 1));
 
+  // Set up Three.js scene for each product
   useEffect(() => {
     products.forEach((product, index) => {
       const canvas = canvasRefs.current[index];
       if (canvas) {
+        // Initialize Three.js scene
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xffffff); // Set white background for 3D render
+        scene.background = new THREE.Color(0xffffff);
         const camera = new THREE.PerspectiveCamera(
           75,
           canvas.clientWidth / canvas.clientHeight,
@@ -29,11 +34,13 @@ export default function ProductsPage() {
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
         renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
+        // Set up controls
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
         controls.enableZoom = false;
 
+        // Add lighting to the scene
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
@@ -45,12 +52,14 @@ export default function ProductsPage() {
         pointLight.position.set(-5, 5, 5);
         scene.add(pointLight);
 
+        // Load and position 3D model
         const loader = new GLTFLoader();
         loader.load(
           product.modelPath,
           (gltf) => {
             scene.add(gltf.scene);
 
+            // Center and scale the model
             const box = new THREE.Box3().setFromObject(gltf.scene);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
@@ -62,9 +71,11 @@ export default function ProductsPage() {
             gltf.scene.position.sub(center.multiplyScalar(scale));
             gltf.scene.position.y = 0;
 
+            // Position camera
             camera.position.z = 4;
             camera.lookAt(0, 0, 0);
 
+            // Animation loop
             function animate() {
               requestAnimationFrame(animate);
               controls.update();
@@ -81,6 +92,7 @@ export default function ProductsPage() {
     });
   }, [products]);
 
+  // Handle weight changes for products
   const handleWeightChange = (index: number, change: number) => {
     const newWeights = [...weights];
     newWeights[index] = Math.max(1, newWeights[index] + change);
@@ -92,23 +104,27 @@ export default function ProductsPage() {
       <div className="container mx-auto pt-8 px-4">
         <h1 className="text-3xl font-bold mb-8 text-green-400">Our Products</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Map through products and display them */}
           {products.map((product, index) => (
             <div
               key={product.id}
               className="border border-gray-700 rounded-lg p-4 bg-black shadow-xl"
             >
+              {/* 3D model viewer */}
               <div className="relative w-full h-80 mb-4 bg-white rounded-md overflow-hidden">
                 <canvas
                   ref={(el) => (canvasRefs.current[index] = el)}
                   className="w-full h-full"
                 />
               </div>
+              {/* Product details */}
               <h2 className="text-xl font-semibold text-green-400">
                 {product.name}
               </h2>
               <p className="text-gray-300">
                 ₿ {(product.price * weights[index]).toFixed(8)}
               </p>
+              {/* Weight adjustment controls */}
               <div className="flex items-center mt-2">
                 <button
                   onClick={() => handleWeightChange(index, -1)}
@@ -124,6 +140,7 @@ export default function ProductsPage() {
                   +
                 </button>
               </div>
+              {/* Add to cart button */}
               <button
                 onClick={() =>
                   dispatch(addToCart({ ...product, quantity: weights[index] }))
